@@ -31,6 +31,7 @@ require("lazy").setup({
   require("plugins.comment"),
   require("plugins.osc52"),
   require("plugins.noice"),
+  require("plugins.neoclip"),
 })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
