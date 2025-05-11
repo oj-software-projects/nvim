@@ -83,4 +83,10 @@ return {
 		priority = 450,
 		name = "rose-pine",
 	},
+	{
+		"folke/tokyonight.nvim",
+		lazy = false,
+		priority = 1000,
+		opts = {},
+	},
 }
