@@ -9,11 +9,12 @@ vim.keymap.set({ "n", "v" }, "<Space>", "<Nop>", { silent = true })
 local opts = { noremap = true, silent = true }
 
 -- Save
-vim.keymap.set("n", "<C-s>", "<cmd> w<CR>", opts)
+vim.keymap.set({ "i", "x", "n", "s" }, "<C-s>", "<cmd>w<cr><esc>", { desc = "Save File" })
 vim.keymap.set("n", "<leader>sn", "<cmd>noautocmd w<CR>", opts) -- save without autoformat
 
 -- Quit
 vim.keymap.set("n", "<C-q>", "<cmd>q<CR>", opts)
+vim.keymap.set("n", "<leader>qq", "<cmd>qa<cr>", { desc = "Quit All" })
 
 -- Delete char without yanking
 vim.keymap.set("n", "x", '"_x', opts)
@@ -26,31 +27,81 @@ vim.keymap.set("n", "<C-u>", "<C-u>zz", opts)
 vim.keymap.set("n", "n", "nzzzv", opts)
 vim.keymap.set("n", "N", "Nzzzv", opts)
 
+-- Clear highlights on search when pressing <Esc> in normal mode
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", opts)
+
 -- Resize splits
 vim.keymap.set("n", "<Up>",    ":resize -2<CR>", opts)
 vim.keymap.set("n", "<Down>",  ":resize +2<CR>", opts)
-vim.keymap.set("n", "<Left>",  ":vertical resize -2<CR>", opts)
-vim.keymap.set("n", "<Right>", ":vertical resize +2<CR>", opts)
+vim.keymap.set("n", "<Left>",  ":vertical resize +2<CR>", opts)
+vim.keymap.set("n", "<Right>", ":vertical resize -2<CR>", opts)
 
 -- Buffer navigation
 vim.keymap.set("n", "<Tab>",    ":bnext<CR>", opts)
 vim.keymap.set("n", "<S-Tab>",  ":bprevious<CR>", opts)
 vim.keymap.set("n", "H",        ":bnext<CR>", opts)
 vim.keymap.set("n", "L",        ":bprev<CR>", opts)
+vim.keymap.set("n", "<S-h>",    "<cmd>bprevious<cr>", { desc = "Prev Buffer" })
+vim.keymap.set("n", "<S-l>",    "<cmd>bnext<cr>", { desc = "Next Buffer" })
 vim.keymap.set("n", "<leader>bd", ":bdelete!<CR>", opts)
+vim.keymap.set("n", "<leader>bo", ":%bd|e#|bd#<CR>", { noremap = true, silent = true, desc = "Close other buffers" })
+vim.keymap.set("n", "<leader>bn", "<cmd>tabnew<cr>", { desc = "New Buffer" })
 vim.keymap.set("n", "<leader>n",  "<cmd>enew<CR>", opts)
 
 -- Window management
 vim.keymap.set("n", "<leader>v",  "<C-w>v", opts)
 vim.keymap.set("n", "<leader>h",  "<C-w>s", opts)
+vim.keymap.set("n", "<leader>wv", "<C-w>v", { noremap = true, silent = true, desc = "Split Vertical" })
+vim.keymap.set("n", "<leader>\\", "<C-w>v", { noremap = true, silent = true, desc = "Split Vertical" })
+vim.keymap.set("n", "<leader>wh", "<C-w>s", { noremap = true, silent = true, desc = "Split Horizontal" })
+vim.keymap.set("n", "<leader>-",  "<C-w>s", { noremap = true, silent = true, desc = "Split Horizontal" })
+vim.keymap.set("n", "<leader>ww", "<C-w>o", { noremap = true, silent = true, desc = "Unsplit (Close others)" })
+vim.keymap.set("n", "<leader>wm", function() Snacks.zen.zoom() end, { noremap = true, silent = true, desc = "Toggle Maximize" })
 vim.keymap.set("n", "<leader>se", "<C-w>=", opts)
 vim.keymap.set("n", "<leader>xs", ":close<CR>", opts)
 
 -- Navigate splits
-vim.keymap.set("n", "<C-k>", ":wincmd k<CR>", opts)
-vim.keymap.set("n", "<C-j>", ":wincmd j<CR>", opts)
-vim.keymap.set("n", "<C-h>", ":wincmd h<CR>", opts)
-vim.keymap.set("n", "<C-l>", ":wincmd l<CR>", opts)
+vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
+vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
+vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
+vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
+
+-- Terminal mappings
+vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { noremap = true, silent = true, desc = "Exit terminal mode" })
+vim.keymap.set('t', '<A-h>', '<C-\\><C-n><C-w>h', { noremap = true, silent = true, desc = "Move focus left" })
+vim.keymap.set('t', '<A-j>', '<C-\\><C-n><C-w>j', { noremap = true, silent = true, desc = "Move focus down" })
+vim.keymap.set('t', '<A-k>', '<C-\\><C-n><C-w>k', { noremap = true, silent = true, desc = "Move focus up" })
+vim.keymap.set('t', '<A-l>', '<C-\\><C-n><C-w>l', { noremap = true, silent = true, desc = "Move focus right" })
+
+-- Terminal (from .ideavimrc)
+vim.keymap.set("n", "<leader>fT", function() Snacks.terminal() end, { desc = "Terminal (cwd)" })
+vim.keymap.set("n", "<C-/>", function() Snacks.terminal() end, { desc = "Terminal" })
+
+-- Diff current buffer with next listed buffer
+vim.keymap.set('n', '<leader>dd', function()
+  local bufs = vim.fn.getbufinfo({ buflisted = 1 })
+  if #bufs < 2 then
+    print("Need at least 2 listed buffers")
+    return
+  end
+  local curr = vim.api.nvim_get_current_buf()
+  local next_buf
+  for i, info in ipairs(bufs) do
+    if info.bufnr == curr then
+      next_buf = bufs[i + 1] and bufs[i + 1].bufnr or bufs[1].bufnr
+      break
+    end
+  end
+  if not next_buf then
+    print("Could not find next buffer")
+    return
+  end
+  vim.cmd("vsplit")
+  vim.api.nvim_set_current_buf(next_buf)
+  vim.cmd("diffthis")
+  vim.api.nvim_set_current_win(vim.fn.win_getid(vim.fn.winnr('#')))
+  vim.cmd("diffthis")
+end, { desc = "Diff with next buffer" })
 
 -- Tabs
 vim.keymap.set("n", "<leader>to", ":tabnew<CR>", opts)
@@ -81,10 +132,36 @@ end, opts)
 
 -- Quick Esc in insert
 vim.keymap.set("i", "jj", "<Esc>", opts)
+vim.keymap.set("i", "jk", "<Esc>", opts)
+
+-- Move lines up/down in visual mode
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", opts)
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", opts)
+
+-- Custom Yank / Delete / Format Mappings (from .ideavimrc)
+vim.keymap.set("n", "<leader>ya", "ggVGy", { noremap = true, silent = true, desc = "Yank all" })
+vim.keymap.set("n", "<leader>yp", 'vap"+y', { noremap = true, silent = true, desc = "Yank paragraph/block" })
+vim.keymap.set("n", "<leader>yf", "[{V%y", { noremap = true, silent = true, desc = "Yank function" })
+vim.keymap.set("n", "<leader>df", "[{V%d", { noremap = true, silent = true, desc = "Delete function" })
+vim.keymap.set("n", "<leader>=", "[{V%gq", { noremap = true, silent = true, desc = "Format function" })
 
 -- LSP format
 vim.keymap.set("n", "<leader>cf", function() vim.lsp.buf.format({ async = true }) end,
   { desc = "Format file", noremap = true, silent = true })
+
+-- Copy file paths
+vim.keymap.set("n", "<leader>fy", function()
+  local path = vim.fn.expand("%:p")
+  vim.fn.setreg("+", path)
+  vim.notify("Copied absolute path: " .. path)
+end, { desc = "Copy absolute path" })
+
+vim.keymap.set("n", "<leader>fY", function()
+  local path = vim.fn.expand("%:.")
+  vim.fn.setreg("+", path)
+  vim.notify("Copied relative path: " .. path)
+end, { desc = "Copy relative path" })
+
 vim.keymap.set("v", "<leader>cf", function()
   vim.lsp.buf.format({
     async = true,
@@ -104,9 +181,15 @@ vim.keymap.set("n", "<leader>e",         function() Snacks.explorer() end,      
 vim.keymap.set("n", "<leader>fb", function() Snacks.picker.buffers() end,                   { desc = "Buffers" })
 vim.keymap.set("n", "<leader>fc", function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, { desc = "Find Config File" })
 vim.keymap.set("n", "<leader>ff", function() Snacks.picker.files() end,                     { desc = "Find Files" })
-vim.keymap.set("n", "<leader>fg", function() Snacks.picker.git_files() end,                 { desc = "Find Git Files" })
+vim.keymap.set("n", "<leader>fg", function() Snacks.picker.grep() end,                      { desc = "Find in File (Grep)" })
 vim.keymap.set("n", "<leader>fp", function() Snacks.picker.projects() end,                  { desc = "Projects" })
 vim.keymap.set("n", "<leader>fr", function() Snacks.picker.recent() end,                    { desc = "Recent" })
+
+-- Git (from .ideavimrc)
+vim.keymap.set("n", "<leader>gc", function() Snacks.picker.git_log() end, { desc = "Git Log (Commit history)" })
+vim.keymap.set("n", "<leader>gC", function() Snacks.picker.git_status() end, { desc = "Git Status (Checkin)" })
+vim.keymap.set("n", "<leader>gp", function() vim.cmd("Git pull") end, { desc = "Git Pull" })
+vim.keymap.set("n", "<leader>gP", function() vim.cmd("Git push") end, { desc = "Git Push" })
 
 -- Snacks git
 vim.keymap.set("n", "<leader>gb", function() Snacks.picker.git_branches() end,              { desc = "Git Branches" })

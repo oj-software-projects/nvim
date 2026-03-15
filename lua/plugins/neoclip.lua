@@ -4,6 +4,7 @@ return {
 	dependencies = {
 		{ "kkharji/sqlite.lua", module = "sqlite" },
 		"nvim-telescope/telescope.nvim",
+		"nvim-treesitter/nvim-treesitter",
 	},
 	config = function()
 		require("neoclip").setup({

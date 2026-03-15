@@ -22,7 +22,7 @@ require("lazy").setup({
 	require("plugins.lualine"),
 	require("plugins.treesitter"),
 	require("plugins.lsp"),
-	require("plugins.autocompletion"),
+	require("plugins.blink"),
 	require("plugins.none-ls"),
 	require("plugins.gitsigns"),
 	--require("plugins.alpha"),
@@ -32,8 +32,10 @@ require("lazy").setup({
 	require("plugins.osc52"),
 	require("plugins.noice"),
 	require("plugins.neoclip"),
+	require("plugins.which-key"),
 	require("plugins.screenkey"),
 	require("plugins.themes"),
+	require("plugins.autopairs_todo"),
 })
 
 require("utils.colors")
